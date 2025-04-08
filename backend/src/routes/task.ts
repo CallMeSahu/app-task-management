@@ -14,8 +14,6 @@ const route = new Hono<{
     };
 }>();
 
-route.get("/", (c) => c.text("Task route"));
-
 route.use("*", authMiddleware);
 
 const createTaskSchema = zod.object({
@@ -42,9 +40,28 @@ route.post("/", async (c) => {
         });
 
         return c.json({ task: createdTask }, 201);
+
     } catch (error) {
         return c.json({ error: "Error creating task" }, 500);
     }
 });
+
+route.get("/", async (c) => {
+    try {
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate());
+
+        const userId = c.get("userId") as string;
+        const tasks = await prisma.task.findMany({
+            where: { userId },
+        });
+
+        return c.json({ tasks }, 200);
+        
+    } catch (error) {
+        return c.json({ error: "Error fetching tasks" }, 500);
+    }
+})
 
 export { route as taskRoute };
