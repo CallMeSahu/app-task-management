@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import zod from "zod";
 import { authMiddleware } from "../middlewares/authMiddleware";
+import { taskSchema } from "@callmesahu/app-task-management-common";
 
 const route = new Hono<{
     Bindings: {
@@ -15,12 +15,6 @@ const route = new Hono<{
 }>();
 
 route.use("*", authMiddleware);
-
-const taskSchema = zod.object({
-    title: zod.string().min(1, "Title is required"),
-    description: zod.string().optional(),
-    status: zod.enum(["PENDING", "IN_PROGRESS", "COMPLETED"]).optional(),
-});
 
 route.post("/", async (c) => {
     try {

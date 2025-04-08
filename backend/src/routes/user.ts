@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import zod  from "zod";
 import bcrypt from "bcryptjs";
 import { sign } from "hono/jwt";
+import { signinSchema, signupSchema } from "@callmesahu/app-task-management-common";
 
 const route = new Hono<{
     Bindings: {
@@ -13,12 +13,6 @@ const route = new Hono<{
 }>();
 
 route.get("/", (c) => c.text("User route"));
-
-const signupSchema = zod.object({
-    email: zod.string().email("Invalid email format"),
-    password: zod.string().min(6, "Password must be at least 6 characters"),
-    name: zod.string().optional(),  
-});
 
 route.post("/signup", async (c) => {
     try {
@@ -50,12 +44,6 @@ route.post("/signup", async (c) => {
     } catch (error) {
         return c.json({ error: "Error creating user" }, 500);
     }
-});
-
-
-export const signinSchema = zod.object({
-    email: zod.string().email("Invalid email format"),
-    password: zod.string().min(6, "Password must be at least 6 characters"),
 });
 
 route.post("/signin", async (c) => {
