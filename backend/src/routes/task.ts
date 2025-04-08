@@ -98,4 +98,30 @@ route.put("/:id", async (c) => {
     }
 });
 
+route.delete("/:id", async (c) => {
+    try {
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate());
+
+        const id = c.req.param("id");
+        const userId = c.get("userId") as string;
+        const existingTask = await prisma.task.findUnique({
+            where: { id, userId }
+        });
+        if (!existingTask) {
+            return c.json({ error: "Task not found" }, 404);
+        }
+
+        await prisma.task.delete({
+            where: { id },
+        });
+        return c.json({ message: "Task deleted successfully" }, 200);
+        
+    } catch (error) {
+        return c.json({ error: "Error deleting task" }, 500);
+        
+    }
+})
+
 export { route as taskRoute };
