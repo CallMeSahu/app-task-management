@@ -24,12 +24,12 @@ export const authMiddleware: MiddlewareHandler<{
         }).$extends(withAccelerate());
 
         const payload = await verify(token, c.env.JWT_SECRET) as { id: string };
-        const user = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
             where: { id: payload.id }
         });
 
-        if (!user) {
-            return c.json({ error: "Unauthorized - User not found" }, 401);
+        if (!existingUser) {
+            return c.json({ error: "Unauthorized" }, 401);
         }
         c.set("userId", payload.id);
         
