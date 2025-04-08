@@ -16,7 +16,7 @@ const route = new Hono<{
 
 route.use("*", authMiddleware);
 
-const createTaskSchema = zod.object({
+const taskSchema = zod.object({
     title: zod.string().min(1, "Title is required"),
     description: zod.string().optional(),
     status: zod.enum(["PENDING", "IN_PROGRESS", "COMPLETED"]).optional(),
@@ -29,7 +29,7 @@ route.post("/", async (c) => {
         }).$extends(withAccelerate());
 
         const { title, description, status } = await c.req.json();
-        const { success, error } = createTaskSchema.safeParse({ title, description, status });
+        const { success, error } = taskSchema.safeParse({ title, description, status });
         if (!success) {
             return c.json({ message: "Invalid data", error: error.format() }, 400);
         }
@@ -58,10 +58,44 @@ route.get("/", async (c) => {
         });
 
         return c.json({ tasks }, 200);
-        
+
     } catch (error) {
         return c.json({ error: "Error fetching tasks" }, 500);
     }
-})
+});
+
+route.put("/:id", async (c) => {
+    try {
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL,
+        }).$extends(withAccelerate());
+
+        const id = c.req.param("id");
+        const { title, description, status } = await c.req.json();
+        const { success, error } = taskSchema.partial().safeParse({ title, description, status });
+
+        if (!success) {
+            return c.json({ message: "Invalid data", error: error.format() }, 400);
+        };
+
+        const userId = c.get("userId") as string;
+        const existingTask = await prisma.task.findUnique({
+            where: { id, userId }
+        });
+        if (!existingTask) {
+            return c.json({ error: "Task not found" }, 404);
+        }
+
+        const updatedTask = await prisma.task.update({
+            where: { id },
+            data: { title, description, status },
+        })
+
+        return c.json({ task: updatedTask }, 200);
+
+    } catch (error) {
+        return c.json({ error: "Error updating task" }, 500);
+    }
+});
 
 export { route as taskRoute };
