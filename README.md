@@ -94,7 +94,7 @@ The combination of Cloudflare Workers and Prisma Accelerate offers significant b
 
 The API is deployed on Cloudflare Workers and accessible using the following link:
 
-[Production API URL]("https://app-task-management.siddharthasahu-work.workers.dev")
+[Production API URL](https://app-task-management.siddharthasahu-work.workers.dev)
 
 `https://app-task-management.siddharthasahu-work.workers.dev`
 
